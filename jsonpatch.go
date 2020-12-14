@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/icggroup/logrus"
-	"github.com/mattbaird/jsonpatch"
 )
 
 var errBadJSONDoc = fmt.Errorf("Invalid JSON Document")
@@ -24,7 +23,7 @@ func (j *JsonPatchOperation) Json() string {
 	return string(b)
 }
 
-func JSONDiff(base map[string]interface{}, resp map[string]interface{}) ([]jsonpatch.JsonPatchOperation, error) {
+func JSONDiff(base map[string]interface{}, resp map[string]interface{}) ([]JsonPatchOperation, error) {
 
 	bb, err := json.Marshal(base)
 	if err != nil {
@@ -40,7 +39,7 @@ func JSONDiff(base map[string]interface{}, resp map[string]interface{}) ([]jsonp
 		return nil, fmt.Errorf(errS)
 	}
 
-	jdiff, err := jsonpatch.CreatePatch([]byte(bb), []byte(rb))
+	jdiff, err := CreatePatch([]byte(bb), []byte(rb))
 	if err != nil {
 
 		return nil, err
