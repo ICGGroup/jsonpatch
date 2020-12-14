@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/icggroup/logrus"
-	"github.com/kr/pretty"
 	"github.com/mattbaird/jsonpatch"
 )
 
@@ -26,7 +25,7 @@ func (j *JsonPatchOperation) Json() string {
 }
 
 func JSONDiff(base map[string]interface{}, resp map[string]interface{}) ([]jsonpatch.JsonPatchOperation, error) {
-	pretty.Println("JSONDIFF")
+
 	bb, err := json.Marshal(base)
 	if err != nil {
 		errS := fmt.Sprintf("Error marshalling base: %s", err.Error())
@@ -89,7 +88,7 @@ func NewPatch(operation, path string, value interface{}) JsonPatchOperation {
 //
 // An error will be returned if any of the two documents are invalid.
 func CreatePatch(a, b []byte) ([]JsonPatchOperation, error) {
-	pretty.Println("icgGroup create patch")
+
 	var aI interface{}
 	var bI interface{}
 
@@ -195,7 +194,7 @@ func diff(a, b map[string]interface{}, path string, patch []JsonPatchOperation) 
 		}
 		// If types have changed, replace completely
 		if reflect.TypeOf(av) != reflect.TypeOf(bv) {
-			pretty.Println("relfect", reflect.TypeOf(av), reflect.TypeOf(bv))
+
 			if reflect.TypeOf(av) == nil {
 				patch = append(patch, NewPatch("add", p, bv))
 			} else {
@@ -223,7 +222,7 @@ func diff(a, b map[string]interface{}, path string, patch []JsonPatchOperation) 
 }
 
 func handleValues(av, bv interface{}, p string, patch []JsonPatchOperation) ([]JsonPatchOperation, error) {
-	pretty.Println("handlevalues")
+
 	var err error
 	switch at := av.(type) {
 	case map[string]interface{}:
@@ -234,12 +233,12 @@ func handleValues(av, bv interface{}, p string, patch []JsonPatchOperation) ([]J
 		}
 	case string, float64, bool:
 		if !matchesValue(av, bv) {
-			pretty.Println("Case String/Float/bool", av, bv)
+
 			patch = append(patch, NewPatch("replace", p, bv))
 		}
 	case []interface{}:
 		bt, ok := bv.([]interface{})
-		pretty.Println("Case []interface", at, bt)
+
 		if !ok {
 			// array replaced by non-array
 			patch = append(patch, NewPatch("replace", p, bv))
@@ -256,7 +255,7 @@ func handleValues(av, bv interface{}, p string, patch []JsonPatchOperation) ([]J
 			}
 		}
 	case nil:
-		pretty.Println("Case nil", at, bv)
+
 		switch bv.(type) {
 		case nil:
 			// Both nil, fine.
