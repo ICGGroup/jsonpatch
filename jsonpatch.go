@@ -290,8 +290,11 @@ func compareArray(av, bv []interface{}, p string) []JsonPatchOperation {
 func processArray(av, bv []interface{}, applyOp func(i int, value interface{})) {
 	foundIndexes := make(map[int]struct{}, len(av))
 	reverseFoundIndexes := make(map[int]struct{}, len(av))
+
 	for i, v := range av {
+		i = len(av) - 1 - i
 		for i2, v2 := range bv {
+			i2 = len(bv) - 1 - i2
 			if _, ok := reverseFoundIndexes[i2]; ok {
 				// We already found this index.
 				continue
