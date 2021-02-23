@@ -272,13 +272,13 @@ func compareArray(av, bv []interface{}, p string) []JsonPatchOperation {
 	retval := []JsonPatchOperation{}
 
 	// Find elements that need to be removed
-	processArray(av, bv, func(i int, value interface{}) {
+	processArrayRemovals(av, bv, func(i int, value interface{}) {
 		retval = append(retval, NewPatch("remove", makePath(p, i), nil))
 	})
 
 	// Find elements that need to be added.
 	// NOTE we pass in `bv` then `av` so that processArray can find the missing elements.
-	processArray(bv, av, func(i int, value interface{}) {
+	processArrayAdditions(bv, av, func(i int, value interface{}) {
 		retval = append(retval, NewPatch("add", makePath(p, i), value))
 	})
 
@@ -287,7 +287,7 @@ func compareArray(av, bv []interface{}, p string) []JsonPatchOperation {
 
 // processArray processes `av` and `bv` calling `applyOp` whenever a value is absent.
 // It keeps track of which indexes have already had `applyOp` called for and automatically skips them so you can process duplicate objects correctly.
-func processArray(av, bv []interface{}, applyOp func(i int, value interface{})) {
+func processArrayRemovals(av, bv []interface{}, applyOp func(i int, value interface{})) {
 	foundIndexes := make(map[int]struct{}, len(av))
 	reverseFoundIndexes := make(map[int]struct{}, len(av))
 
@@ -295,6 +295,29 @@ func processArray(av, bv []interface{}, applyOp func(i int, value interface{})) 
 		i = len(av) - 1 - i
 		for i2, v2 := range bv {
 			i2 = len(bv) - 1 - i2
+			if _, ok := reverseFoundIndexes[i2]; ok {
+				// We already found this index.
+				continue
+			}
+			if reflect.DeepEqual(v, v2) {
+				// Mark this index as found since it matches exactly.
+				foundIndexes[i] = struct{}{}
+				reverseFoundIndexes[i2] = struct{}{}
+				break
+			}
+		}
+		if _, ok := foundIndexes[i]; !ok {
+			applyOp(i, v)
+		}
+	}
+}
+
+func processArrayAdditions(av, bv []interface{}, applyOp func(i int, value interface{})) {
+	foundIndexes := make(map[int]struct{}, len(av))
+	reverseFoundIndexes := make(map[int]struct{}, len(av))
+
+	for i, v := range av {
+		for i2, v2 := range bv {
 			if _, ok := reverseFoundIndexes[i2]; ok {
 				// We already found this index.
 				continue
